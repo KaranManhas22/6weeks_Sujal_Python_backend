@@ -4,10 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js",
-    "data:import": "node data/seeder.js",
-    "data:destroy": "node data/seeder.js -d"
+    "start": "venv/bin/python main.py",
+    "dev": "venv/bin/python main.py",
+    "data:import": "venv/bin/python data/seeder.py",
+    "data:destroy": "venv/bin/python data/seeder.py -d"
   },
   "keywords": [],
   "author": "",
