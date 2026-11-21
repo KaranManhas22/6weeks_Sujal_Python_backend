@@ -20,7 +20,7 @@ jobs:
           password: ${{secrets.PASSWORD}}
 
           script: |
-            cd /home/sujal/6weeks_Sujal_Python_backend
+            cd /home/ubuntu/6weeks_Sujal_Python_backend
             git pull origin main
             source venv/bin/activate
             pip install -r requirements.txt
