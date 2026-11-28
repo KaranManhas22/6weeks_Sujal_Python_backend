@@ -2,10 +2,10 @@
   "name": "backend",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
-    "start": "venv/bin/python main.py",
-    "dev": "venv/bin/python main.py",
+    "start": "node server.js",
+    "dev": "node server.js",
     "data:import": "venv/bin/python data/seeder.py",
     "data:destroy": "venv/bin/python data/seeder.py -d"
   },

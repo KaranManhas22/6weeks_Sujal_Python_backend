@@ -1,7 +1,7 @@
 import sys
 import os
 import random
-from datetime import datetime
+from datetime import datetime, timezone
 from bson import ObjectId
 from dotenv import load_dotenv
 
@@ -17,9 +17,10 @@ db = get_db()
 
 def import_data():
     try:
-        # Clear collections
-        db.properties.delete_many({})
-        db.users.delete_many({})
+        # Demo import is safe to rerun: never replace existing accounts or listings.
+        if db.users.count_documents({}) or db.properties.count_documents({}):
+            print("Demo data was not imported because users or properties already exist.")
+            sys.exit(1)
         
         # Hash user passwords before inserting
         hashed_users = []
@@ -29,8 +30,8 @@ def import_data():
             user_copy["avatar"] = ""
             user_copy["phone"] = ""
             user_copy["savedProperties"] = []
-            user_copy["createdAt"] = datetime.utcnow()
-            user_copy["updatedAt"] = datetime.utcnow()
+            user_copy["createdAt"] = datetime.now(timezone.utc)
+            user_copy["updatedAt"] = datetime.now(timezone.utc)
             hashed_users.append(user_copy)
             
         inserted_users = db.users.insert_many(hashed_users)
@@ -132,8 +133,8 @@ def import_data():
                 "images": selected_imgs,
                 "seller": seller_id,
                 "approvalStatus": "Approved",
-                "createdAt": datetime.utcnow(),
-                "updatedAt": datetime.utcnow()
+                "createdAt": datetime.now(timezone.utc),
+                "updatedAt": datetime.now(timezone.utc)
             }
             sample_properties.append(prop)
             

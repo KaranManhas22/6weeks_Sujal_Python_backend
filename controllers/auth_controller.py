@@ -1,5 +1,5 @@
-from fastapi import HTTPException, status
-from bson import ObjectId
+from fastapi import HTTPException
+from pymongo.errors import DuplicateKeyError
 from config.db import get_db
 from models.user_model import UserRegister, UserLogin, hash_password, verify_password
 from utils.generate_token import generate_token
@@ -29,7 +29,10 @@ def register_user_controller(user_data: UserRegister):
         "savedProperties": []
     }
     
-    result = db.users.insert_one(user_doc)
+    try:
+        result = db.users.insert_one(user_doc)
+    except DuplicateKeyError:
+        raise HTTPException(status_code=400, detail="User already exists") from None
     user_id = str(result.inserted_id)
     
     return {
@@ -44,35 +47,23 @@ def login_user_controller(login_data: UserLogin):
     email = login_data.email.lower()
     
     user = db.users.find_one({"email": email})
-    if user and verify_password(login_data.password, user["password"]):
+    if user and verify_password(login_data.password, user.get("password", "")):
         user_id = str(user["_id"])
         return {
             "_id": user_id,
             "name": user["name"],
             "email": user["email"],
-            "role": user["role"],
+            "role": user.get("role", "Buyer"),
             "token": generate_token(user_id)
         }
-    else:
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid email or password"
-        )
+    raise HTTPException(status_code=401, detail="Invalid email or password")
 
 def get_user_profile_controller(current_user: dict):
-    # Fetch latest user state from database
-    user = db.users.find_one({"_id": ObjectId(current_user["_id"])})
-    if not user:
-        raise HTTPException(
-            status_code=404,
-            detail="User not found"
-        )
-    
     return {
-        "_id": str(user["_id"]),
-        "name": user.get("name", ""),
-        "email": user.get("email", ""),
-        "role": user.get("role", "Buyer"),
-        "avatar": user.get("avatar", ""),
-        "phone": user.get("phone", "")
+        "_id": current_user["_id"],
+        "name": current_user.get("name", ""),
+        "email": current_user.get("email", ""),
+        "role": current_user.get("role", "Buyer"),
+        "avatar": current_user.get("avatar", ""),
+        "phone": current_user.get("phone", "")
     }

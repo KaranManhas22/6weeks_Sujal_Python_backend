@@ -1,5 +1,5 @@
-from pydantic import BaseModel, EmailStr, Field
-from typing import List, Optional
+from pydantic import BaseModel, EmailStr, Field, field_validator
+from typing import Literal
 import bcrypt
 
 def hash_password(password: str) -> str:
@@ -15,10 +15,17 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
         return False
 
 class UserRegister(BaseModel):
-    name: str
+    name: str = Field(min_length=1)
     email: EmailStr
-    password: str
-    role: Optional[str] = "Buyer"  # Buyer, Seller, Admin
+    password: str = Field(min_length=8)
+    role: Literal["Buyer", "Seller"] = "Buyer"
+
+    @field_validator("password")
+    @classmethod
+    def password_fits_bcrypt(cls, password: str) -> str:
+        if len(password.encode("utf-8")) > 72:
+            raise ValueError("password must be at most 72 bytes")
+        return password
 
 class UserLogin(BaseModel):
     email: EmailStr
